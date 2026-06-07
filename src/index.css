@@ -1,0 +1,229 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* IDM Institute Design System - Optimized for Conversion 
+All colors MUST be HSL for Instituto DespertaMente branding.
+*/
+
+@layer base {
+  :root {
+    /* IDM Brand Colors */
+    --idm-dark: 220 100% 6%;
+    --idm-blue: 220 70% 25%;
+    --idm-blue-light: 220 60% 35%;
+    --idm-orange: 38 95% 60%;
+    --idm-orange-light: 38 90% 65%;
+    --idm-white: 0 0% 98%;
+    --idm-gray: 220 15% 85%;
+    --idm-gray-dark: 220 20% 20%;
+
+    /* Semantic Colors */
+    --background: var(--idm-dark);
+    --foreground: var(--idm-white);
+
+    --card: var(--idm-blue);
+    --card-foreground: var(--idm-white);
+
+    --popover: var(--idm-blue);
+    --popover-foreground: var(--idm-white);
+
+    --primary: var(--idm-orange);
+    --primary-foreground: var(--idm-dark);
+
+    --secondary: var(--idm-blue);
+    --secondary-foreground: var(--idm-white);
+
+    --muted: var(--idm-gray-dark);
+    --muted-foreground: var(--idm-gray);
+
+    --accent: var(--idm-orange-light);
+    --accent-foreground: var(--idm-dark);
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: var(--idm-white);
+
+    --border: var(--idm-gray-dark);
+    --input: var(--idm-blue);
+    --ring: var(--idm-orange);
+
+    /* Obrigado page colors */
+    --whatsapp: 120 100% 40%;
+    --whatsapp-foreground: 0 0% 100%;
+    --progress: 259 94% 51%;
+    --progress-foreground: 0 0% 100%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 0 84% 60%;
+    --warning-foreground: 0 0% 100%;
+
+    /* Conversion-Optimized Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(var(--idm-dark)), hsl(var(--idm-blue)));
+    --gradient-cta: linear-gradient(135deg, hsl(var(--idm-orange)), hsl(var(--idm-orange-light)));
+    --gradient-card: linear-gradient(145deg, hsl(var(--idm-blue)), hsl(var(--idm-blue-light)));
+
+    /* Professional Shadows */
+    --shadow-card: 0 10px 30px -10px hsl(var(--idm-dark) / 0.4);
+    --shadow-button: 0 8px 25px -8px hsl(var(--idm-orange) / 0.4);
+    --shadow-glow: 0 0 40px hsl(var(--idm-orange) / 0.3);
+
+    /* Smooth Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  /* Professional animations for conversion optimization */
+  .animate-pulse-slow {
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes glow {
+    from { box-shadow: var(--shadow-button); }
+    to { box-shadow: var(--shadow-glow); }
+  }
+
+  /* Conversion-focused button styles */
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary to-accent text-primary-foreground font-bold py-4 px-8 rounded-lg;
+    @apply transition-all duration-300 transform hover:scale-105 hover:shadow-lg;
+    @apply focus:outline-none focus:ring-4 focus:ring-ring focus:ring-opacity-50;
+    box-shadow: var(--shadow-button);
+  }
+
+  .btn-primary:hover {
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* Custom input styles */
+  .input-form {
+    @apply bg-input border border-border rounded-lg px-4 py-3 text-foreground;
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent;
+    @apply transition-all duration-300;
+  }
+
+  .input-form::placeholder {
+    @apply text-muted-foreground;
+  }
+
+  /* Obrigado page styles */
+  .bg-progress-gradient {
+    background: linear-gradient(45deg,
+      hsl(var(--progress)) 0%,
+      hsl(var(--progress)) 25%,
+      transparent 25%,
+      transparent 50%,
+      hsl(var(--progress)) 50%,
+      hsl(var(--progress)) 75%,
+      transparent 75%);
+    background-size: 20px 20px;
+    animation: progressStripes 2s linear infinite;
+  }
+
+  @keyframes progressStripes {
+    0% { background-position: 0 0; }
+    100% { background-position: 20px 0; }
+  }
+
+  .pulse-green {
+    animation: pulseGreen 2s ease-in-out infinite;
+  }
+
+  @keyframes pulseGreen {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsl(var(--whatsapp) / 0.7);
+      transform: scale(1);
+    }
+    50% {
+      box-shadow: 0 0 0 20px hsl(var(--whatsapp) / 0);
+      transform: scale(1.02);
+    }
+  }
+
+  .card-hover {
+    transition: all 0.3s ease;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px hsl(var(--primary) / 0.1);
+  }
+}
