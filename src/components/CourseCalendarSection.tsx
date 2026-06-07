@@ -10,7 +10,7 @@ const JUNE_2026 = {
   totalDays: 30,
 };
 
-const COURSE_DAYS = new Set([9, 10, 11]);
+const COURSE_DAYS = new Set([16, 17, 18]);
 
 const CalendarDay: React.FC<{ day: number | string; isHeader?: boolean; isCourseDay?: boolean }> = ({
   day,
@@ -91,9 +91,9 @@ const CourseCalendarSection = () => {
               Datas das aulas
             </p>
             {[
-              { dia: "09", diaSemana: "Terça-feira", aula: "Aula 01" },
-              { dia: "10", diaSemana: "Quarta-feira", aula: "Aula 02" },
-              { dia: "11", diaSemana: "Quinta-feira", aula: "Aula 03" },
+              { dia: "16", diaSemana: "Terça-feira", aula: "Aula 01" },
+              { dia: "17", diaSemana: "Quarta-feira", aula: "Aula 02" },
+              { dia: "18", diaSemana: "Quinta-feira", aula: "Aula 03" },
             ].map(({ dia, diaSemana, aula }) => (
               <div
                 key={dia}
