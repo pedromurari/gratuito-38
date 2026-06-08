@@ -11,6 +11,9 @@ declare global {
 }
 
 export function ThankYouPage() {
+  const nome = new URLSearchParams(window.location.search).get("nome") ?? "";
+  const primeiroNome = nome.split(" ")[0];
+
   useEffect(() => {
     if (typeof window.fbq === "function") {
       window.fbq("track", "CompleteRegistration");
@@ -26,7 +29,7 @@ export function ThankYouPage() {
         {/* Header Section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            🎉 <span className="text-primary">Parabéns</span> pelo seu <span className="text-primary">cadastro!</span>
+            🎉 <span className="text-primary">Parabéns{primeiroNome ? `, ${primeiroNome}` : ""}</span> pelo seu <span className="text-primary">cadastro!</span>
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
             Você garantiu sua vaga no nosso <span className="text-primary font-semibold">Curso Gratuito!</span> O evento será nos dias <span className="text-primary font-semibold">16, 17 e 18 de Junho.</span>

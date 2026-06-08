@@ -157,7 +157,7 @@ const HeroSection = () => {
     // NEVER set setIsSubmitting(false) here to permanently lock the button until redirect
     // Use window.onbeforeunload to prevent user from easy double clicks during lag
     setTimeout(() => {
-      window.location.href = '/obrigado';
+      window.location.href = `/obrigado?nome=${encodeURIComponent(trimmedName)}`;
     }, 2000);
   };
 
