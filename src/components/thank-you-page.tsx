@@ -17,7 +17,7 @@ export function ThankYouPage() {
     }
   }, []);
 
-  const whatsappLink = "";
+  const whatsappLink = "https://chat.whatsapp.com/EzebszSzZyUDdtrQ35YwMY";
 
   return (
     <div className="min-h-screen bg-background">
