@@ -76,9 +76,9 @@ export default async function handler(req: Request): Promise<Response> {
       console.warn('[GAS] SHEETS_WEBHOOK_URL não configurado');
     }
 
-    // Adiciona lead na campanha de disparo — alterna PM e IG a cada registro
-    const campanhasPM = 'a3a93708-fe8b-48f2-a2e2-aa2f951b0df4';
-    const campanhasIG = '0090fc04-3894-4cec-a8ca-ebe6065bee25';
+    // Adiciona lead na campanha de disparo #38 — alterna PM e IG a cada registro
+    const campanhasPM = 'd2d1f819-c30e-428f-9f90-961d7f6d9ad1';
+    const campanhasIG = 'b1a88730-7197-40b0-819b-5d6869057225';
     const disparoCampanhaId = Date.now() % 2 === 0 ? campanhasPM : campanhasIG;
     const phoneClean = whatsapp.replace(/\D/g, '');
     fetch(`${crmUrl}/rest/v1/disparo_leads`, {
