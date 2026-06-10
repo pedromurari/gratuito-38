@@ -156,8 +156,12 @@ const HeroSection = () => {
 
     // NEVER set setIsSubmitting(false) here to permanently lock the button until redirect
     // Use window.onbeforeunload to prevent user from easy double clicks during lag
+    const membersAreaUrl = import.meta.env.VITE_MEMBERS_AREA_URL as string | undefined;
+    const destination = membersAreaUrl
+      ? `${membersAreaUrl}/semana38?nome=${encodeURIComponent(trimmedName)}`
+      : `/obrigado?nome=${encodeURIComponent(trimmedName)}`;
     setTimeout(() => {
-      window.location.href = `/obrigado?nome=${encodeURIComponent(trimmedName)}`;
+      window.location.href = destination;
     }, 2000);
   };
 
