@@ -79,6 +79,20 @@ export default async function handler(req: Request): Promise<Response> {
       }),
     }).catch((err) => console.error('Erro ao adicionar lead no disparo:', err));
 
+    // Criar usuário na Área de Membros (fire-and-forget)
+    const membersUrl = process.env.MEMBERS_AREA_URL;
+    const membersKey = process.env.MEMBERS_AREA_API_KEY;
+    if (membersUrl && membersKey) {
+      fetch(`${membersUrl}/api/criar-usuario`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${membersKey}`,
+        },
+        body: JSON.stringify({ email, nome, whatsapp }),
+      }).catch((err) => console.error('Erro ao criar usuário na área de membros:', err));
+    }
+
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
