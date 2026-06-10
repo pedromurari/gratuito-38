@@ -1,8 +1,16 @@
-// Vercel Edge Function — Registra lead na tabela lancamento_leads do CRM
+// Vercel Serverless Function — Registra lead no CRM e cria usuário na área de membros
 
 export const config = {
-  maxDuration: 30,
+  maxDuration: 10,
 };
+
+const withTimeout = <T>(promise: Promise<T>, ms: number, label: string): Promise<T> =>
+  Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`timeout:${label}`)), ms)
+    ),
+  ]);
 
 export default async function handler(req: Request): Promise<Response> {
   if (req.method !== 'POST') {
@@ -28,103 +36,128 @@ export default async function handler(req: Request): Promise<Response> {
     const { nome, email, whatsapp, utm_source, utm_medium, utm_campaign, utm_content, utm_term } = await req.json();
 
     const now = new Date().toISOString();
+    const phoneClean = whatsapp.replace(/\D/g, '');
 
-    const response = await fetch(`${crmUrl}/rest/v1/lancamento_leads`, {
-      method: 'POST',
-      headers: {
-        apikey: crmKey,
-        Authorization: `Bearer ${crmKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        lancamento_id: lancamentoId,
-        nome,
-        email,
-        whatsapp,
-        fase: 'planilha',
-        crm: false,
-        data_entrada: now,
-        ultima_atividade: now,
+    // ── Operações críticas em paralelo ───────────────────────────────────────
+    const membersUrl = process.env.MEMBERS_AREA_URL;
+    const membersKey = process.env.MEMBERS_AREA_API_KEY;
+
+    const crmPromise = withTimeout(
+      fetch(`${crmUrl}/rest/v1/lancamento_leads`, {
+        method: 'POST',
+        headers: {
+          apikey: crmKey,
+          Authorization: `Bearer ${crmKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          lancamento_id: lancamentoId,
+          nome, email, whatsapp,
+          fase: 'planilha', crm: false,
+          data_entrada: now, ultima_atividade: now,
+        }),
       }),
-    });
+      3000,
+      'crm-insert'
+    );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Erro ao inserir lead no CRM:', errorText);
+    const userPromise = (membersUrl && membersKey)
+      ? withTimeout(
+          fetch(`${membersUrl}/api/criar-usuario`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${membersKey}`,
+            },
+            body: JSON.stringify({ email, nome, whatsapp }),
+          }).then((r) => r.json()),
+          4000,
+          'criar-usuario'
+        )
+      : Promise.resolve(null);
+
+    // ── Operações secundárias em paralelo ────────────────────────────────────
+    const sheetsUrl = process.env.SHEETS_WEBHOOK_URL;
+    const gasPromise = sheetsUrl
+      ? withTimeout(
+          (() => {
+            const p = new URLSearchParams({ nome, email, whatsapp });
+            if (utm_source)   p.set('utm_source',   utm_source);
+            if (utm_medium)   p.set('utm_medium',   utm_medium);
+            if (utm_campaign) p.set('utm_campaign', utm_campaign);
+            if (utm_content)  p.set('utm_content',  utm_content);
+            if (utm_term)     p.set('utm_term',     utm_term);
+            return fetch(`${sheetsUrl}?${p.toString()}`, { method: 'GET' });
+          })(),
+          4000,
+          'gas'
+        )
+      : Promise.resolve(null);
+
+    const campanhasPM = 'd2d1f819-c30e-428f-9f90-961d7f6d9ad1';
+    const campanhasIG = 'b1a88730-7197-40b0-819b-5d6869057225';
+    const disparoCampanhaId = Date.now() % 2 === 0 ? campanhasPM : campanhasIG;
+
+    const disparoPromise = withTimeout(
+      fetch(`${crmUrl}/rest/v1/disparo_leads`, {
+        method: 'POST',
+        headers: {
+          apikey: crmKey,
+          Authorization: `Bearer ${crmKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify({ campanha_id: disparoCampanhaId, nome, phone: phoneClean, status: 'pendente', ordem: Date.now() }),
+      }),
+      3000,
+      'disparo'
+    );
+
+    const boasVindasPromise = withTimeout(
+      fetch(`${crmUrl}/functions/v1/boas-vindas-enviar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: crmKey },
+        body: JSON.stringify({ funnel_name: 'Turma #38', nome, email, whatsapp }),
+      }),
+      4000,
+      'boas-vindas'
+    );
+
+    // ── Aguarda tudo em paralelo ──────────────────────────────────────────────
+    const [crmResult, userResult, gasResult, disparoResult, boasVindasResult] =
+      await Promise.allSettled([crmPromise, userPromise, gasPromise, disparoPromise, boasVindasPromise]);
+
+    // Log de status
+    console.log('[CRM]', crmResult.status, crmResult.status === 'rejected' ? (crmResult as PromiseRejectedResult).reason : '');
+    console.log('[USER]', userResult.status, userResult.status === 'rejected' ? (userResult as PromiseRejectedResult).reason : '');
+    console.log('[GAS]', gasResult.status, gasResult.status === 'fulfilled' && gasResult.value ? `status:${(gasResult.value as Response)?.status}` : (gasResult as PromiseRejectedResult).reason ?? '');
+    console.log('[DISPARO]', disparoResult.status);
+    console.log('[BOAS-VINDAS]', boasVindasResult.status);
+
+    // CRM insert falhou → erro crítico
+    if (crmResult.status === 'rejected') {
       return new Response(JSON.stringify({ error: 'Erro ao salvar no CRM' }), {
-        status: response.status,
+        status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    // Salvar lead no Google Sheets via GAS — awaited para garantir execução na Edge
-    const sheetsUrl = process.env.SHEETS_WEBHOOK_URL;
-    if (sheetsUrl) {
-      const p = new URLSearchParams({ nome, email, whatsapp });
-      if (utm_source)   p.set('utm_source',   utm_source);
-      if (utm_medium)   p.set('utm_medium',   utm_medium);
-      if (utm_campaign) p.set('utm_campaign', utm_campaign);
-      if (utm_content)  p.set('utm_content',  utm_content);
-      if (utm_term)     p.set('utm_term',     utm_term);
-      try {
-        const gasRes = await fetch(`${sheetsUrl}?${p.toString()}`, { method: 'GET' });
-        console.log('[GAS] status:', gasRes.status);
-      } catch (err) {
-        console.error('[GAS] erro:', err);
-      }
-    } else {
-      console.warn('[GAS] SHEETS_WEBHOOK_URL não configurado');
+    const crmResponse = (crmResult as PromiseFulfilledResult<Response>).value;
+    if (!crmResponse.ok) {
+      const errorText = await crmResponse.text();
+      console.error('CRM insert falhou:', errorText);
+      return new Response(JSON.stringify({ error: 'Erro ao salvar no CRM' }), {
+        status: crmResponse.status,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
-    // Adiciona lead na campanha de disparo #38 — alterna PM e IG a cada registro
-    const campanhasPM = 'd2d1f819-c30e-428f-9f90-961d7f6d9ad1';
-    const campanhasIG = 'b1a88730-7197-40b0-819b-5d6869057225';
-    const disparoCampanhaId = Date.now() % 2 === 0 ? campanhasPM : campanhasIG;
-    const phoneClean = whatsapp.replace(/\D/g, '');
-    fetch(`${crmUrl}/rest/v1/disparo_leads`, {
-      method: 'POST',
-      headers: {
-        apikey: crmKey,
-        Authorization: `Bearer ${crmKey}`,
-        'Content-Type': 'application/json',
-        Prefer: 'return=minimal',
-      },
-      body: JSON.stringify({
-        campanha_id: disparoCampanhaId,
-        nome,
-        phone: phoneClean,
-        status: 'pendente',
-        ordem: Date.now(),
-      }),
-    }).catch((err) => console.error('Erro ao adicionar lead no disparo:', err));
+    const loginUrl: string | null =
+      userResult.status === 'fulfilled' && userResult.value?.loginUrl
+        ? userResult.value.loginUrl
+        : null;
 
-    // Dispara email de boas-vindas via Edge Function do CRM (fire-and-forget)
-    fetch(`${crmUrl}/functions/v1/boas-vindas-enviar`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', apikey: crmKey },
-      body: JSON.stringify({ funnel_name: 'Turma #38', nome, email, whatsapp }),
-    }).catch((err) => console.error('Erro ao enviar boas-vindas:', err));
-
-    // Criar usuário na Área de Membros e obter loginUrl para auto-login
-    const membersUrl = process.env.MEMBERS_AREA_URL;
-    const membersKey = process.env.MEMBERS_AREA_API_KEY;
-    let loginUrl: string | null = null;
-    if (membersUrl && membersKey) {
-      try {
-        const membersRes = await fetch(`${membersUrl}/api/criar-usuario`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${membersKey}`,
-          },
-          body: JSON.stringify({ email, nome, whatsapp }),
-        });
-        const membersData = await membersRes.json();
-        loginUrl = membersData?.loginUrl ?? null;
-      } catch (err) {
-        console.error('Erro ao criar usuário na área de membros:', err);
-      }
-    }
+    console.log('[LOGIN_URL]', loginUrl ?? 'null — lead irá para /login');
 
     return new Response(JSON.stringify({ success: true, loginUrl }), {
       status: 200,
