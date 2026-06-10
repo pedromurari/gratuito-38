@@ -117,7 +117,7 @@ const HeroSection = () => {
     }).catch((err) => console.error('Erro ao enviar CAPI:', err));
 
     // Salvar lead no Google Sheets via GAS (fire-and-forget)
-    const SHEETS_URL = '';
+    const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzIFwsqPVYHf8sIZExLu_O36rSr7l0K5I7PTrEda0vWjYl9UzAf6-Sp1zROFMmPYTA3/exec';
     if (SHEETS_URL) {
       const sheetsParams = new URLSearchParams();
       sheetsParams.append('nome', trimmedName);
