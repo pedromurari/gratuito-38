@@ -98,6 +98,13 @@ export default async function handler(req: Request): Promise<Response> {
       }),
     }).catch((err) => console.error('Erro ao adicionar lead no disparo:', err));
 
+    // Dispara email de boas-vindas via Edge Function do CRM (fire-and-forget)
+    fetch(`${crmUrl}/functions/v1/boas-vindas-enviar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: crmKey },
+      body: JSON.stringify({ funnel_name: 'Turma #38', nome, email, whatsapp }),
+    }).catch((err) => console.error('Erro ao enviar boas-vindas:', err));
+
     // Criar usuário na Área de Membros e obter loginUrl para auto-login
     const membersUrl = process.env.MEMBERS_AREA_URL;
     const membersKey = process.env.MEMBERS_AREA_API_KEY;
