@@ -1,4 +1,5 @@
 // Vercel Serverless Function — Registra lead no CRM e cria usuário na área de membros
+// Usa formato (req, res) porque o runtime Node.js não suporta Web API handler (req.json)
 
 export const config = {
   maxDuration: 10,
@@ -12,12 +13,11 @@ const withTimeout = <T>(promise: Promise<T>, ms: number, label: string): Promise
     ),
   ]);
 
-export default async function handler(req: Request): Promise<Response> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default async function handler(req: any, res: any): Promise<void> {
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
   }
 
   const crmUrl = process.env.CRM_SUPABASE_URL;
@@ -26,17 +26,15 @@ export default async function handler(req: Request): Promise<Response> {
 
   if (!crmUrl || !crmKey || !lancamentoId) {
     console.error('Variáveis de ambiente do CRM não configuradas');
-    return new Response(JSON.stringify({ error: 'Configuração incompleta' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    res.status(500).json({ error: 'Configuração incompleta' });
+    return;
   }
 
   try {
-    const { nome, email, whatsapp, utm_source, utm_medium, utm_campaign, utm_content, utm_term } = await req.json();
+    const { nome, email, whatsapp, utm_source, utm_medium, utm_campaign, utm_content, utm_term } = req.body;
 
     const now = new Date().toISOString();
-    const phoneClean = whatsapp.replace(/\D/g, '');
+    const phoneClean = (whatsapp ?? '').replace(/\D/g, '');
 
     // ── Operações críticas em paralelo ───────────────────────────────────────
     const membersUrl = process.env.MEMBERS_AREA_URL;
@@ -81,7 +79,7 @@ export default async function handler(req: Request): Promise<Response> {
     const gasPromise = sheetsUrl
       ? withTimeout(
           (() => {
-            const p = new URLSearchParams({ nome, email, whatsapp });
+            const p = new URLSearchParams({ nome: nome ?? '', email: email ?? '', whatsapp: whatsapp ?? '' });
             if (utm_source)   p.set('utm_source',   utm_source);
             if (utm_medium)   p.set('utm_medium',   utm_medium);
             if (utm_campaign) p.set('utm_campaign', utm_campaign);
@@ -130,44 +128,33 @@ export default async function handler(req: Request): Promise<Response> {
     // Log de status
     console.log('[CRM]', crmResult.status, crmResult.status === 'rejected' ? (crmResult as PromiseRejectedResult).reason : '');
     console.log('[USER]', userResult.status, userResult.status === 'rejected' ? (userResult as PromiseRejectedResult).reason : '');
-    console.log('[GAS]', gasResult.status, gasResult.status === 'fulfilled' && gasResult.value ? `status:${(gasResult.value as Response)?.status}` : (gasResult as PromiseRejectedResult).reason ?? '');
+    console.log('[GAS]', gasResult.status, gasResult.status === 'fulfilled' && (gasResult as PromiseFulfilledResult<Response | null>).value ? `status:${((gasResult as PromiseFulfilledResult<Response>).value)?.status}` : (gasResult.status === 'rejected' ? (gasResult as PromiseRejectedResult).reason : ''));
     console.log('[DISPARO]', disparoResult.status);
     console.log('[BOAS-VINDAS]', boasVindasResult.status);
 
     // CRM insert falhou → erro crítico
     if (crmResult.status === 'rejected') {
-      return new Response(JSON.stringify({ error: 'Erro ao salvar no CRM' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      res.status(500).json({ error: 'Erro ao salvar no CRM' });
+      return;
     }
 
     const crmResponse = (crmResult as PromiseFulfilledResult<Response>).value;
     if (!crmResponse.ok) {
-      const errorText = await crmResponse.text();
-      console.error('CRM insert falhou:', errorText);
-      return new Response(JSON.stringify({ error: 'Erro ao salvar no CRM' }), {
-        status: crmResponse.status,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      console.error('CRM insert falhou com status:', crmResponse.status);
+      res.status(crmResponse.status).json({ error: 'Erro ao salvar no CRM' });
+      return;
     }
 
     const loginUrl: string | null =
-      userResult.status === 'fulfilled' && userResult.value?.loginUrl
-        ? userResult.value.loginUrl
+      userResult.status === 'fulfilled' && (userResult as PromiseFulfilledResult<{ loginUrl?: string } | null>).value?.loginUrl
+        ? (userResult as PromiseFulfilledResult<{ loginUrl: string }>).value.loginUrl
         : null;
 
     console.log('[LOGIN_URL]', loginUrl ?? 'null — lead irá para /login');
 
-    return new Response(JSON.stringify({ success: true, loginUrl }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    res.status(200).json({ success: true, loginUrl });
   } catch (error) {
     console.error('Erro na função crm-lead:', error);
-    return new Response(JSON.stringify({ error: 'Erro interno' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    res.status(500).json({ error: 'Erro interno' });
   }
 }
