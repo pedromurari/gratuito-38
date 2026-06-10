@@ -116,17 +116,6 @@ const HeroSection = () => {
       keepalive: true,
     }).catch((err) => console.error('Erro ao enviar CAPI:', err));
 
-    // Salvar lead no Google Sheets via GAS (fire-and-forget)
-    const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzIFwsqPVYHf8sIZExLu_O36rSr7l0K5I7PTrEda0vWjYl9UzAf6-Sp1zROFMmPYTA3/exec';
-    if (SHEETS_URL) {
-      const sheetsParams = new URLSearchParams();
-      sheetsParams.append('nome', trimmedName);
-      sheetsParams.append('email', trimmedEmail);
-      sheetsParams.append('whatsapp', whatsappNumber);
-      UTM_KEYS.forEach((key) => sheetsParams.append(key, utms[key]));
-      fetch(`${SHEETS_URL}?${sheetsParams.toString()}`, { method: 'GET', mode: 'no-cors', keepalive: true });
-    }
-
     // Salvar lead no Supabase (fire-and-forget)
     supabase?.from('sheet_leads_38').insert({
       'Nome': trimmedName,
@@ -150,7 +139,7 @@ const HeroSection = () => {
         fetch('/api/crm-lead', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nome: trimmedName, email: trimmedEmail, whatsapp: whatsappNumber }),
+          body: JSON.stringify({ nome: trimmedName, email: trimmedEmail, whatsapp: whatsappNumber, ...utms }),
         }).then(async (r) => ({ ok: r.ok, data: r.ok ? await r.json() : null })),
         new Promise<{ ok: false; data: null }>((resolve) =>
           setTimeout(() => resolve({ ok: false, data: null }), 6000)
