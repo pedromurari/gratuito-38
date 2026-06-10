@@ -1,7 +1,7 @@
 // Vercel Edge Function — Registra lead na tabela lancamento_leads do CRM
 
 export const config = {
-  runtime: 'edge',
+  maxDuration: 30,
 };
 
 export default async function handler(req: Request): Promise<Response> {
