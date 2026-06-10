@@ -57,17 +57,23 @@ export default async function handler(req: Request): Promise<Response> {
       });
     }
 
-    // Salvar lead no Google Sheets via GAS — chamada server-side (sem CORS)
+    // Salvar lead no Google Sheets via GAS — awaited para garantir execução na Edge
     const sheetsUrl = process.env.SHEETS_WEBHOOK_URL;
     if (sheetsUrl) {
-      const p = new URLSearchParams({ nome, email, whatsapp: `+55${whatsapp.replace(/\D/g, '')}` });
+      const p = new URLSearchParams({ nome, email, whatsapp });
       if (utm_source)   p.set('utm_source',   utm_source);
       if (utm_medium)   p.set('utm_medium',   utm_medium);
       if (utm_campaign) p.set('utm_campaign', utm_campaign);
       if (utm_content)  p.set('utm_content',  utm_content);
       if (utm_term)     p.set('utm_term',     utm_term);
-      fetch(`${sheetsUrl}?${p.toString()}`, { method: 'GET' })
-        .catch((err) => console.error('Erro ao salvar no GAS:', err));
+      try {
+        const gasRes = await fetch(`${sheetsUrl}?${p.toString()}`, { method: 'GET' });
+        console.log('[GAS] status:', gasRes.status);
+      } catch (err) {
+        console.error('[GAS] erro:', err);
+      }
+    } else {
+      console.warn('[GAS] SHEETS_WEBHOOK_URL não configurado');
     }
 
     // Adiciona lead na campanha de disparo — alterna PM e IG a cada registro
