@@ -142,27 +142,33 @@ const HeroSection = () => {
       if (error) console.error('Erro ao salvar lead no Supabase:', error);
     });
 
-    // Enviar lead ao CRM (fire-and-forget — não bloqueia o fluxo principal)
-    fetch('/api/crm-lead', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        nome: trimmedName,
-        email: trimmedEmail,
-        whatsapp: whatsappNumber,
-      }),
-      keepalive: true,
-    }).catch((err) => console.error('Erro ao enviar lead ao CRM:', err));
-
-    // NEVER set setIsSubmitting(false) here to permanently lock the button until redirect
-    // Use window.onbeforeunload to prevent user from easy double clicks during lag
+    // Enviar lead ao CRM — aguarda para obter loginUrl de auto-login
     const membersAreaUrl = import.meta.env.VITE_MEMBERS_AREA_URL as string | undefined;
-    const destination = membersAreaUrl
-      ? `${membersAreaUrl}/semana38?nome=${encodeURIComponent(trimmedName)}`
-      : `/obrigado?nome=${encodeURIComponent(trimmedName)}`;
-    setTimeout(() => {
-      window.location.href = destination;
-    }, 2000);
+    let loginUrl: string | null = null;
+    try {
+      const crmResult = await Promise.race([
+        fetch('/api/crm-lead', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome: trimmedName, email: trimmedEmail, whatsapp: whatsappNumber }),
+        }).then(async (r) => ({ ok: r.ok, data: r.ok ? await r.json() : null })),
+        new Promise<{ ok: false; data: null }>((resolve) =>
+          setTimeout(() => resolve({ ok: false, data: null }), 6000)
+        ),
+      ]);
+      if (crmResult.ok && crmResult.data?.loginUrl) {
+        loginUrl = crmResult.data.loginUrl;
+      }
+    } catch (err) {
+      console.error('Erro ao enviar lead ao CRM:', err);
+    }
+
+    const destination =
+      loginUrl ??
+      (membersAreaUrl
+        ? `${membersAreaUrl}/login`
+        : `/obrigado?nome=${encodeURIComponent(trimmedName)}`);
+    window.location.href = destination;
   };
 
   const formatPhone = (value: string) => {

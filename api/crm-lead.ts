@@ -79,21 +79,28 @@ export default async function handler(req: Request): Promise<Response> {
       }),
     }).catch((err) => console.error('Erro ao adicionar lead no disparo:', err));
 
-    // Criar usuário na Área de Membros (fire-and-forget)
+    // Criar usuário na Área de Membros e obter loginUrl para auto-login
     const membersUrl = process.env.MEMBERS_AREA_URL;
     const membersKey = process.env.MEMBERS_AREA_API_KEY;
+    let loginUrl: string | null = null;
     if (membersUrl && membersKey) {
-      fetch(`${membersUrl}/api/criar-usuario`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${membersKey}`,
-        },
-        body: JSON.stringify({ email, nome, whatsapp }),
-      }).catch((err) => console.error('Erro ao criar usuário na área de membros:', err));
+      try {
+        const membersRes = await fetch(`${membersUrl}/api/criar-usuario`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${membersKey}`,
+          },
+          body: JSON.stringify({ email, nome, whatsapp }),
+        });
+        const membersData = await membersRes.json();
+        loginUrl = membersData?.loginUrl ?? null;
+      } catch (err) {
+        console.error('Erro ao criar usuário na área de membros:', err);
+      }
     }
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, loginUrl }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
