@@ -238,7 +238,7 @@ const HeroSection = () => {
             TURMA #38
           </p>
           <p className="text-lg md:text-xl font-semibold text-foreground">
-            DIAS 16, 17 E 18 DE JUNHO
+            DIAS 23, 24 E 25 DE JUNHO
           </p>
           <p className="text-md md:text-lg text-accent font-medium">
             AO VIVO NO YOUTUBE ÀS 20 HORAS
