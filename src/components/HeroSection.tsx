@@ -243,6 +243,9 @@ const HeroSection = () => {
           <p className="text-md md:text-lg text-accent font-medium">
             AO VIVO NO YOUTUBE ÀS 20 HORAS
           </p>
+          <p className="text-sm text-muted-foreground mt-1">
+            * Aula do dia 24/06 começa às 21h — tem jogo da Seleção às 19h
+          </p>
         </div>
 
         {/* Registration form */}

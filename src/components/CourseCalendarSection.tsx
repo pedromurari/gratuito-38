@@ -92,7 +92,7 @@ const CourseCalendarSection = () => {
             </p>
             {[
               { dia: "23", diaSemana: "Terça-feira", aula: "Aula 01" },
-              { dia: "24", diaSemana: "Quarta-feira", aula: "Aula 02" },
+              { dia: "24", diaSemana: "Quarta-feira · 21h*", aula: "Aula 02" },
               { dia: "25", diaSemana: "Quinta-feira", aula: "Aula 03" },
             ].map(({ dia, diaSemana, aula }) => (
               <div
@@ -113,7 +113,7 @@ const CourseCalendarSection = () => {
               </div>
             ))}
             <p className="text-xs text-muted-foreground mt-2">
-              * Fique de olho no grupo do WhatsApp para o horário exato.
+              * Aula do dia 24/06 começa às 21h — tem jogo da Seleção às 19h.
             </p>
           </div>
         </div>
