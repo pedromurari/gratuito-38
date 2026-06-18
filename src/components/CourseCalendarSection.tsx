@@ -10,7 +10,7 @@ const JUNE_2026 = {
   totalDays: 30,
 };
 
-const COURSE_DAYS = new Set([23, 24, 25]);
+const COURSE_DAYS = new Set([30]);
 
 const CalendarDay: React.FC<{ day: number | string; isHeader?: boolean; isCourseDay?: boolean }> = ({
   day,
@@ -91,12 +91,12 @@ const CourseCalendarSection = () => {
               Datas das aulas
             </p>
             {[
-              { dia: "23", diaSemana: "Terça-feira", aula: "Aula 01" },
-              { dia: "24", diaSemana: "Quarta-feira · 21h*", aula: "Aula 02" },
-              { dia: "25", diaSemana: "Quinta-feira", aula: "Aula 03" },
-            ].map(({ dia, diaSemana, aula }) => (
+              { dia: "30", mes: "Junho", diaSemana: "Terça-feira", aula: "Aula 01" },
+              { dia: "01", mes: "Julho", diaSemana: "Quarta-feira", aula: "Aula 02" },
+              { dia: "02", mes: "Julho", diaSemana: "Quinta-feira", aula: "Aula 03" },
+            ].map(({ dia, mes, diaSemana, aula }) => (
               <div
-                key={dia}
+                key={`${mes}-${dia}`}
                 className="flex items-center gap-4 rounded-xl border border-border bg-card px-5 py-4"
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-xl shadow-[0_0_16px_hsl(var(--idm-orange)/0.4)]">
@@ -107,14 +107,11 @@ const CourseCalendarSection = () => {
                     {diaSemana} — {aula}
                   </p>
                   <p className="text-muted-foreground text-sm">
-                    Junho de 2026 · Online e Gratuito
+                    {mes} de 2026 · Online e Gratuito
                   </p>
                 </div>
               </div>
             ))}
-            <p className="text-xs text-muted-foreground mt-2">
-              * Aula do dia 24/06 começa às 21h — tem jogo da Seleção às 19h.
-            </p>
           </div>
         </div>
       </div>

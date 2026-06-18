@@ -238,13 +238,10 @@ const HeroSection = () => {
             TURMA #38
           </p>
           <p className="text-lg md:text-xl font-semibold text-foreground">
-            DIAS 23, 24 E 25 DE JUNHO
+            30 DE JUNHO, 01 E 02 DE JULHO
           </p>
           <p className="text-md md:text-lg text-accent font-medium">
             AO VIVO NO YOUTUBE ÀS 20 HORAS
-          </p>
-          <p className="text-sm text-muted-foreground mt-1">
-            * Aula do dia 24/06 começa às 21h — tem jogo da Seleção às 19h
           </p>
         </div>
 
