@@ -20,9 +20,9 @@ export default async function handler(req: any, res: any): Promise<void> {
     return;
   }
 
-  const crmUrl = process.env.CRM_SUPABASE_URL;
-  const crmKey = process.env.CRM_SUPABASE_SERVICE_KEY;
-  const lancamentoId = process.env.LANCAMENTO_ID;
+  const crmUrl = process.env.CRM_SUPABASE_URL?.trim();
+  const crmKey = process.env.CRM_SUPABASE_SERVICE_KEY?.trim();
+  const lancamentoId = process.env.LANCAMENTO_ID?.trim();
 
   if (!crmUrl || !crmKey || !lancamentoId) {
     console.error('Variáveis de ambiente do CRM não configuradas');
