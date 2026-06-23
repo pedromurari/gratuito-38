@@ -67,7 +67,7 @@ export default async function handler(req: any, res: any): Promise<void> {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${membersKey}`,
             },
-            body: JSON.stringify({ email, nome, whatsapp }),
+            body: JSON.stringify({ email, nome, whatsapp, route: 'semanadodespertar-38' }),
           }).then((r) => r.json()),
           4000,
           'criar-usuario'
