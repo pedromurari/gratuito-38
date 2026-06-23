@@ -95,6 +95,8 @@ export default async function handler(req: any, res: any): Promise<void> {
     const campanhasPM = 'd2d1f819-c30e-428f-9f90-961d7f6d9ad1';
     const campanhasIG = 'b1a88730-7197-40b0-819b-5d6869057225';
     const disparoCampanhaId = Date.now() % 2 === 0 ? campanhasPM : campanhasIG;
+    // ordem em segundos (não milissegundos) para caber em integer do PostgreSQL
+    const ordemSegundos = Math.floor(Date.now() / 1000);
 
     const disparoPromise = withTimeout(
       fetch(`${crmUrl}/rest/v1/disparo_leads`, {
@@ -105,7 +107,7 @@ export default async function handler(req: any, res: any): Promise<void> {
           'Content-Type': 'application/json',
           Prefer: 'return=minimal',
         },
-        body: JSON.stringify({ campanha_id: disparoCampanhaId, nome, phone: phoneClean, status: 'pendente', ordem: Date.now() }),
+        body: JSON.stringify({ campanha_id: disparoCampanhaId, nome, phone: phoneClean, status: 'pendente', ordem: ordemSegundos }),
       }),
       3000,
       'disparo'
