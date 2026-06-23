@@ -125,24 +125,27 @@ export default async function handler(req: any, res: any): Promise<void> {
     const [crmResult, userResult, gasResult, disparoResult, boasVindasResult] =
       await Promise.allSettled([crmPromise, userPromise, gasPromise, disparoPromise, boasVindasPromise]);
 
-    // Log de status
+    // Log de status (inclui projeto Supabase para diagnóstico)
+    const crmProjectRef = crmUrl?.match(/https:\/\/([^.]+)\./)?.[1] ?? 'unknown';
+    console.log('[CRM_PROJECT]', crmProjectRef);
     console.log('[CRM]', crmResult.status, crmResult.status === 'rejected' ? (crmResult as PromiseRejectedResult).reason : '');
+    if (crmResult.status === 'fulfilled') {
+      const r = (crmResult as PromiseFulfilledResult<Response>).value;
+      console.log('[CRM_STATUS]', r.status, r.ok ? 'ok' : 'FAIL');
+    }
     console.log('[USER]', userResult.status, userResult.status === 'rejected' ? (userResult as PromiseRejectedResult).reason : '');
     console.log('[GAS]', gasResult.status, gasResult.status === 'fulfilled' && (gasResult as PromiseFulfilledResult<Response | null>).value ? `status:${((gasResult as PromiseFulfilledResult<Response>).value)?.status}` : (gasResult.status === 'rejected' ? (gasResult as PromiseRejectedResult).reason : ''));
     console.log('[DISPARO]', disparoResult.status);
     console.log('[BOAS-VINDAS]', boasVindasResult.status);
 
-    // CRM insert falhou → erro crítico
+    // CRM insert falhou → log mas não bloqueia o lead
     if (crmResult.status === 'rejected') {
-      res.status(500).json({ error: 'Erro ao salvar no CRM' });
-      return;
-    }
-
-    const crmResponse = (crmResult as PromiseFulfilledResult<Response>).value;
-    if (!crmResponse.ok) {
-      console.error('CRM insert falhou com status:', crmResponse.status);
-      res.status(crmResponse.status).json({ error: 'Erro ao salvar no CRM' });
-      return;
+      console.error('[CRM] REJECTED — lead continua para loginUrl');
+    } else {
+      const crmResponse = (crmResult as PromiseFulfilledResult<Response>).value;
+      if (!crmResponse.ok) {
+        console.error('[CRM] INSERT falhou com status:', crmResponse.status, '— lead continua para loginUrl');
+      }
     }
 
     const loginUrl: string | null =
