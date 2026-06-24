@@ -75,7 +75,7 @@ export default async function handler(req: any, res: any): Promise<void> {
       : Promise.resolve(null);
 
     // ── Operações secundárias em paralelo ────────────────────────────────────
-    const sheetsUrl = process.env.SHEETS_WEBHOOK_URL;
+    const sheetsUrl = process.env.SHEETS_WEBHOOK_URL?.trim();
     const gasPromise = sheetsUrl
       ? withTimeout(
           (() => {
