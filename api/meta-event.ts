@@ -41,6 +41,7 @@ export default async function handler(req: Request): Promise<Response> {
 
     const userData: Record<string, string> = {};
     if (email) userData['em'] = await hashData(email);
+    if (email) userData['external_id'] = await hashData(email);
     if (phone) userData['ph'] = await hashData(phone.replace(/\D/g, ''));
     if (name) {
       const parts = name.trim().split(' ');
