@@ -40,6 +40,14 @@ const HeroSection = () => {
 
   useEffect(() => {
     setUtms(captureUtms());
+    // CAPI PageView — deduplica com o pixel via _pvId gerado no index.html
+    const pvId = (window as any)._pvId as string | undefined;
+    fetch('/api/meta-event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eventName: 'PageView', sourceUrl: window.location.href, eventId: pvId }),
+      keepalive: true,
+    }).catch(() => {});
   }, []);
   
   const handleSubmit = async (e: React.FormEvent) => {

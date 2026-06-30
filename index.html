@@ -28,7 +28,9 @@ t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
 fbq('init', '1472969447740954');
-fbq('track', 'PageView');
+var _pvId = 'pv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+window._pvId = _pvId;
+fbq('track', 'PageView', {}, { eventID: _pvId });
 </script>
 <!-- End Meta Pixel Code -->
     <meta property="og:title" content="Curso Gratuito de Psicanálise Integrativa - Instituto DespertaMente">
